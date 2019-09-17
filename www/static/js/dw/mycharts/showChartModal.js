@@ -1,5 +1,4 @@
 define(function() {
-
     _.templateSettings = { interpolate: /\[\[(.+?)\]\]/g };
     var chartDetailTpl = _.template($('#mycharts-modal').html());
 
@@ -9,33 +8,35 @@ define(function() {
             bg = meta.publish && meta.publish.background ? meta.publish.background : '#fff',
             chart_w = Math.max(350, Math.min(650, chart.metadata.publish['embed-width'])),
             date_fmt = function(d) {
-                d = new Date(d.split(" ")[0]);
-                return Globalize.format(d, 'ddd')+', '+Globalize.format(d, 'd');
-            },
-            data = {
-                chartID: chart.id,
-                namespace: ((chart.type == "d3-maps-choropleth" || chart.type == "d3-maps-symbols") && chart.metadata.visualize["map-type-set"]) ? "map" : "chart",
-                chartUrl: location.protocol + '//' + dw.backend.__domain + '/chart/' + chart.id + '/preview',
-                publicUrl: chart.publicUrl,
-                src: 'src',
-                iframeW: chart_w,
-                iframeH: chart.metadata.publish['embed-height'],
-                iframeBg: bg,
-                wrapperW: chart_w + 260,
-                author: chart.author.email ? chart.author.email : chart.author.name,
-                createdAt: date_fmt(chart.createdAt),
-                publishedAt: chart.publishedAt ? date_fmt(chart.publishedAt) : '—',
-                forkedFrom: chart.forkedFrom ? chart.forkedFrom : false
-            },
-            wrapper = $(chartDetailTpl(data)),
-            userId = wrapper.data('is-writable'),
-            isGfxEd = wrapper.data('is-gfxed'),
-            overlay = wrapper.overlay({
+                d = new Date(d.split(' ')[0]);
+                return Globalize.format(d, 'ddd') + ', ' + Globalize.format(d, 'd');
+            };
+        var chartUrl = localStorage.getItem('sapper') === 'true' ? '/preview/' + chart.id : '/chart/' + chart.id + '/preview';
+        (data = {
+            chartID: chart.id,
+            namespace:
+                (chart.type == 'd3-maps-choropleth' || chart.type == 'd3-maps-symbols') && chart.metadata.visualize['map-type-set'] ? 'map' : 'chart',
+            chartUrl: location.protocol + '//' + dw.backend.__domain + chartUrl,
+            publicUrl: chart.publicUrl,
+            src: 'src',
+            iframeW: chart_w,
+            iframeH: chart.metadata.publish['embed-height'],
+            iframeBg: bg,
+            wrapperW: chart_w + 260,
+            author: chart.author.email ? chart.author.email : chart.author.name,
+            createdAt: date_fmt(chart.createdAt),
+            publishedAt: chart.publishedAt ? date_fmt(chart.publishedAt) : '—',
+            forkedFrom: chart.forkedFrom ? chart.forkedFrom : false
+        }),
+            (wrapper = $(chartDetailTpl(data))),
+            (userId = wrapper.data('is-writable')),
+            (isGfxEd = wrapper.data('is-gfxed')),
+            (overlay = wrapper.overlay({
                 mask: {
                     opacity: 0.8,
                     color: '#222'
                 }
-            });
+            }));
         $('iframe', wrapper).attr('src', data.chartUrl);
         $('.close', wrapper).click(function(e) {
             e.preventDefault();
@@ -44,7 +45,7 @@ define(function() {
 
         // update form action for duplicate button
         $('.action-duplicate form', wrapper)
-            .attr('action', '/api/charts/'+chart.id+'/copy')
+            .attr('action', '/api/charts/' + chart.id + '/copy')
             .on('submit', function() {
                 require(['dw/mycharts/no_reload_folder_change'], function(api) {
                     api.reloadLink(location.pathname);
@@ -71,5 +72,4 @@ define(function() {
         }
         overlay.open();
     };
-
 });
